@@ -1,0 +1,14 @@
+http:
+  routers:
+    fallback:
+      rule: Host(`t.yourdomain`) || Host(`v.yourdomain`)
+      entryPoints:
+        - fallback
+      service: fallback
+
+  services:
+    fallback:
+      loadBalancer:
+        servers:
+          - url: https://yourwebsite
+        passHostHeader: false

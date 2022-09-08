@@ -1,0 +1,17 @@
+http:
+  routers:
+    dashboard:
+      rule: Host(`dashboard.yourdomain`)
+      entryPoints:
+        - websecure
+      tls:
+        certresolver: zerossl
+      middlewares:
+        - dashboard_auth
+      service: api@internal
+
+  middlewares:
+    dashboard_auth:
+      basicAuth:
+        users:
+        - user:pass

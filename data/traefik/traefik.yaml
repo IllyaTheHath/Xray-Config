@@ -1,0 +1,64 @@
+api:
+  dashboard: true
+  insecure: false
+
+providers:
+  docker:
+    exposedbydefault: false
+  file:
+    directory: /etc/traefik/conf.d
+    watch: true
+
+log:
+  level: DEBUG
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+    proxyProtocol:
+      insecure: true
+    forwardedHeaders:
+      insecure: true
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        options: default
+        certResolver: zerossl
+        domains:
+          - main: yourdomain
+            sans: "*.yourdomain"
+  fallback:
+    address: ":8080"
+    proxyProtocol:
+      insecure: true
+    forwardedHeaders:
+      insecure: true
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      #caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+      email: youremail@outlook.com
+      storage: /etc/traefik/acme/acme.json
+      dnsChallenge:
+        provider: dnspod
+  zerossl:
+    acme:
+      caServer: https://acme.zerossl.com/v2/DV90
+      email: youremail@outlook.com
+      storage: /etc/traefik/acme/acme-zerossl.json
+      dnsChallenge:
+        provider: dnspod
+      eab:
+        kid: yourkid
+        hmacEncoded: yourhmac
+tls:
+  options:
+    default:
+      sniStrict: true

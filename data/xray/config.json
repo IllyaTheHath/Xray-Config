@@ -1,0 +1,10 @@
+{
+    "log": {
+      "loglevel": "debug"
+    },
+    "outbounds": [
+      {
+        "protocol": "freedom"
+      }
+    ]
+  }

@@ -1,0 +1,56 @@
+version: "3"
+services:
+  xray:
+    container_name: xray
+    image: teddysun/xray
+    restart: unless-stopped
+    environment:
+      - "XRAY_LOCATION_CONFDIR=/etc/xray"
+    volumes:
+      - "./../data/xray:/etc/xray:ro"
+      - "./../data/cert:/etc/ssl/cert:ro"
+    expose:
+      - "1443"
+      - "2443"
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.tcp.services.xray-vless.loadbalancer.server.port=1443"
+      - "traefik.tcp.routers.xray-vless.rule=HostSNI(`v.yourdomain`)"
+      - "traefik.tcp.routers.xray-vless.entrypoints=websecure"
+      - "traefik.tcp.routers.xray-vless.service=xray-vless"
+      - "traefik.tcp.routers.xray-vless.tls.passthrough=true"
+      - "traefik.tcp.routers.xray-vless.tls.options=default"
+
+      - "traefik.tcp.services.xray-trojan.loadbalancer.server.port=2443"
+      - "traefik.tcp.routers.xray-trojan.rule=HostSNI(`t.yourdomain`)"
+      - "traefik.tcp.routers.xray-trojan.entrypoints=websecure"
+      - "traefik.tcp.routers.xray-trojan.service=xray-trojan"
+      - "traefik.tcp.routers.xray-trojan.tls.passthrough=true"
+      - "traefik.tcp.routers.xray-trojan.tls.options=default"
+    networks:
+      - public
+
+  lb_traefik:
+    container_name: lb_traefik
+    image: traefik
+    restart: unless-stopped
+    depends_on:
+      - xray
+    environment:
+      - DNSPOD_API_KEY=123456,111111111111111111111111111111
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./../data/traefik/acme:/etc/traefik/acme"
+      - "./../data/traefik/conf.d:/etc/traefik/conf.d:ro"
+      - "./../data/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro"
+    ports:
+      - "80:80"
+      - "443:443"
+    expose:
+      - "8080"
+    networks:
+      - public
+
+networks:
+  public:
